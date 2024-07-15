@@ -1,0 +1,39 @@
+name: waqti
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.6
+  flutter_svg: ^2.0.10+1
+  google_fonts: ^6.2.1
+  firebase_auth: ^5.1.0
+  firebase_core: ^3.1.0
+  cloud_firestore: ^5.0.1
+  crypto: ^3.0.3
+  geolocator: ^12.0.0
+  google_maps_flutter_android: ^2.10.0
+  permission_handler: ^11.3.1
+  geocoding: ^3.0.0
+  http: ^1.2.1
+  
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/Logo.png
+    - assets/Barcode.png
+    - assets/bot-semd-cc33e00a530e.json
