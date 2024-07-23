@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:waqti/conferm_screen.dart';
+import 'package:waqti/conferm_screen/conferm_screen.dart';
 import 'package:waqti/profile.dart';
 
 class NotificationPage extends StatelessWidget {

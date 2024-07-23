@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:waqti/conferm_screen.dart';
+import 'package:waqti/conferm_screen/conferm_screen.dart';
 import 'package:waqti/profile.dart';
 
 class ChatBotPage extends StatefulWidget {
