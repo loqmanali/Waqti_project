@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'login_screen.dart'; // Import your login page
+import 'app_router.dart';
+import 'auth/pages/login_screen.dart'; // Import your login page
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -16,7 +17,7 @@ class _SplashPageState extends State<SplashPage> {
     super.initState();
     Timer(const Duration(seconds: 4), () {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const SignInPage()), // Use SignInPage instead of LoginPage
+        MaterialPageRoute(builder: (context) => SignInPage()), // Use SignInPage instead of LoginPage
       );
     });
   }

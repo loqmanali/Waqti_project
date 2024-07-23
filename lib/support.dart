@@ -1,14 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const MaterialApp(
-    home: SupportScreen(),
-  ));
-}
 
 class SupportScreen extends StatefulWidget {
   const SupportScreen({super.key});
@@ -22,6 +15,7 @@ class _SupportScreenState extends State<SupportScreen> {
   final TextEditingController _messageController = TextEditingController();
   String userId = '';
   String userName = '';
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -32,7 +26,7 @@ class _SupportScreenState extends State<SupportScreen> {
   Future<void> _fetchUserData() async {
     DocumentSnapshot userDoc = await FirebaseFirestore.instance
         .collection('users')
-        .doc('Stru6t9pfEX4mtuOamFF')
+        .doc(_auth.currentUser!.uid)
         .get();
     setState(() {
       userId = userDoc['id'];
@@ -44,7 +38,7 @@ class _SupportScreenState extends State<SupportScreen> {
     if (_messageController.text.isNotEmpty) {
       await FirebaseFirestore.instance
           .collection('users')
-          .doc('Stru6t9pfEX4mtuOamFF')
+          .doc(_auth.currentUser!.uid)
           .collection('support_message')
           .add({
         'userId': userId,

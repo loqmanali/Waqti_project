@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:waqti/conferm_screen.dart';
+import 'package:waqti/conferm_screen/conferm_screen.dart';
 import 'package:waqti/profile.dart';
 
 void main() {

@@ -1,27 +1,31 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:waqti/login_screen.dart';
-import 'package:waqti/support.dart'; 
-import 'package:waqti/edit.dart'; 
-import 'book.dart'; 
-import 'package:waqti/medical.dart'; 
+import 'package:waqti/auth/pages/login_screen.dart';
+import 'package:waqti/support.dart';
+import 'package:waqti/edit.dart';
+import 'app_router.dart';
+import 'book.dart';
+import 'package:waqti/medical.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: ProfilePage(),
-    );
-  }
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+class _ProfilePageState extends State<ProfilePage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<Map<String, dynamic>> _getUserData() async {
+    User? user = _auth.currentUser;
+    DocumentSnapshot snapshot =
+        await _firestore.collection('users').doc(user?.uid).get();
+    print(snapshot.data());
+    return snapshot.data() as Map<String, dynamic>;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +37,15 @@ class ProfilePage extends StatelessWidget {
         backgroundColor: const Color(0xFF8BE0C1),
         title: const Text('Profile'),
         centerTitle: true,
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(65),
+          child: SizedBox(),
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
+          icon: Icon(Icons.adaptive.arrow_back),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -49,134 +60,183 @@ class ProfilePage extends StatelessWidget {
         ],
       ),
       drawer: const ReservationDrawer(),
-      body: Builder(
-        builder: (BuildContext context) {
-          return Column(
-            children: [
-              // Upper Section with rounded bottom
-              Container(
-                height: 200,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF8BE0C1),
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      body: FutureBuilder(
+        future: _getUserData(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Scaffold(
+              body: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Error: ${snapshot.error}'),
+                  ElevatedButton(
+                    child: const Text('Log Out'),
+                    onPressed: () {
+                      FirebaseAuth.instance.signOut().then((value) {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const SignInPage()));
+                      });
+                    },
+                  ),
+                ],
+              ),
+            );
+          } else if (snapshot.hasData) {
+            final user = snapshot.data;
+            return Column(
+              children: [
+                // Upper Section with rounded bottom
+                // Container(
+                //   // height: 200,
+                //   decoration: const BoxDecoration(
+                //     color: Color(0xFF8BE0C1),
+                //     borderRadius:
+                //         BorderRadius.vertical(bottom: Radius.circular(30)),
+                //   ),
+                //   child: const Padding(
+                //     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                //     child: Row(
+                //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //       children: [
+                //         Text(
+                //           'Profile',
+                //           style: TextStyle(
+                //             color: Colors.white,
+                //             fontSize: 20,
+                //             fontWeight: FontWeight.bold,
+                //           ),
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                // ),
+
+                // Profile Details Section
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Hello ${user?['fullName']},',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const CircleAvatar(
+                          radius: 40,
+                          child: Icon(Icons.person, size: 40),
+                        ),
+                        const SizedBox(height: 30),
+                        _buildProfileButton(
+                          context: context,
+                          icon: Icons.edit,
+                          text: 'Edit Profile',
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const EditProfilePage()));
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        _buildProfileButton(
+                          context: context,
+                          icon: Icons.medical_services,
+                          text: 'Medical Records',
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const MedicalHistoryPage()));
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        _buildProfileButton(
+                          context: context,
+                          icon: Icons.event_note,
+                          text: 'My Bookings',
+                          onPressed: () {
+                            scaffoldKey.currentState!
+                                .openDrawer(); // Open the drawer
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        _buildProfileButton(
+                          context: context,
+                          icon: Icons.support,
+                          text: 'Support',
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const SupportScreen()));
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        _buildProfileButton(
+                          context: context,
+                          icon: Icons.logout,
+                          text: 'Log Out',
+                          onPressed: () {
+                            _showSignOutDialog(
+                                context); // Show sign-out confirmation dialog
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+
+                // Bottom Navigation Bar
+                Container(
+                  height: 70,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF8BE0C1),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(30)),
+                  ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Text(
-                        'Profile',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.person),
+                        color: Colors.black,
+                      ),
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.home),
+                        color: Colors.black,
+                      ),
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.headset),
+                        color: Colors.black,
                       ),
                     ],
                   ),
                 ),
-              ),
-
-              // Profile Details Section
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'Hello Faisal',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      const CircleAvatar(
-                        radius: 40,
-                        child: Icon(Icons.person, size: 40),
-                      ),
-                      const SizedBox(height: 30),
-                      _buildProfileButton(
-                        context: context,
-                        icon: Icons.edit,
-                        text: 'Edit Profile',
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const EditProfilePage()));
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      _buildProfileButton(
-                        context: context,
-                        icon: Icons.medical_services,
-                        text: 'Medical Records',
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const MedicalHistoryPage()));
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      _buildProfileButton(
-                        context: context,
-                        icon: Icons.event_note,
-                        text: 'My Bookings',
-                        onPressed: () {
-                          scaffoldKey.currentState!.openDrawer(); // Open the drawer
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      _buildProfileButton(
-                        context: context,
-                        icon: Icons.support,
-                        text: 'Support',
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const SupportScreen()));
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      _buildProfileButton(
-                        context: context,
-                        icon: Icons.logout,
-                        text: 'Log Out',
-                        onPressed: () {
-                          _showSignOutDialog(context); // Show sign-out confirmation dialog
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Bottom Navigation Bar
-              Container(
-                height: 70,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF8BE0C1),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.person),
-                      color: Colors.black,
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.home),
-                      color: Colors.black,
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.headset),
-                      color: Colors.black,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
+              ],
+            );
+          } else {
+            return const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('No user signed in'),
+              ],
+            );
+          }
         },
       ),
     );
@@ -231,7 +291,13 @@ class ProfilePage extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () {
                       //Navigator.of(context).pop();
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const SignInPage())); // Close the bottom sheet
+                      FirebaseAuth.instance.signOut().then((value) {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const SignInPage())); // Close the bottom sheet
+                      });
                       // Implement your log out logic here
                       // For example, navigate to login screen or clear user session
                     },
@@ -240,8 +306,6 @@ class ProfilePage extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop(); // Close the bottom sheet
-                      
-                      
                     },
                     child: const Text('Cancel'),
                   ),
@@ -280,7 +344,10 @@ class ReservationDrawer extends StatelessWidget {
             title: const Text('Current'),
             onTap: () {
               // Handle current tap
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const ReservationScreen()));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ReservationScreen()));
             },
           ),
           ListTile(

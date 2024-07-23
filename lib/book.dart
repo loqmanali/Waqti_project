@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 //import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
@@ -33,6 +35,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
   String userId = '';
   String hospitalName = '';
   String bookingDate = 'Loading...';
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -43,7 +46,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
   Future<void> fetchUserData() async {
     try {
       // Fixed document ID for testing
-      String documentId = 'Stru6t9pfEX4mtuOamFF';
+      String documentId = _auth.currentUser!.uid;
 
       // Get the user document
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
@@ -63,6 +66,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
             userId = userDoc['id']?.toString() ?? '';
             hospitalName = reservationDoc['hospitalName']?.toString() ?? '';
             bookingDate = reservationDoc['timestamp']?.toDate().toString() ?? '';
+            bookingDate = DateFormat('yyyy-MM-dd').format(reservationDoc['timestamp']?.toDate() ?? DateTime.now());
           });
         } else {
           // Handle case where there are no reservations
@@ -91,62 +95,33 @@ class _ReservationScreenState extends State<ReservationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color(0xFF8BE0C1),
         title: const Text('My Reservation'),
-      ),
-      body: Column(
-        children: [
-          // Upper Rectangle with checklist icon
-          Container(
-            height: 200,
-            decoration: const BoxDecoration(
-              color: Color(0xFF8BE0C1),
-              borderRadius:
-                  BorderRadius.vertical(bottom: Radius.circular(30)),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          Navigator.pop(context); // Navigate back logic
-                        },
-                        icon: const Icon(Icons.arrow_back),
-                        color: Colors.white,
-                      ),
-                      const Text(
-                        'My Reservation',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 48), // Placeholder for symmetry
-                    ],
-                  ),
-                ),
-                const CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                  child: Icon(
-                    Icons.checklist_outlined,
-                    size: 40,
-                    color: Color(0xFF8BE0C1),
-                  ),
-                ),
-                const SizedBox(height: 10), // Add some spacing
-              ],
+        centerTitle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(30),
+          ),
+        ),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(85.0),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: 15.0),
+            child: CircleAvatar(
+              radius: 30,
+              backgroundColor: Colors.white,
+              child: Icon(
+                Icons.checklist_outlined,
+                size: 40,
+                color: Color(0xFF8BE0C1),
+              ),
             ),
           ),
-
-          // Reservation Details Section
-          Expanded(
+        ),
+      ),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Container(
